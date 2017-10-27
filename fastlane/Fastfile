@@ -1,0 +1,40 @@
+fastlane_version "2.47.0"
+default_platform :ios
+
+podspec_path = "TungstenLibsodium.podspec"
+
+before_all do  
+  pod_version = version_get_podspec
+  if git_tag_exists(tag: pod_version)
+    UI.user_error!("Version #{pod_version} already exists! Make sure to update!")
+  end
+end
+
+lane :clean do
+  sh "rm -rf ../build"
+end
+
+
+desc "Lint pod by checking podspec"
+lane :lint do
+  pod_lib_lint(
+    allow_warnings:true,
+    sources: [
+      "https://github.com/CocoaPods/Specs"
+    ]
+  )
+end
+
+desc "Publish pod to CocoaPods podspec repo"
+lane :publish do
+  add_git_tag(tag: version_get_podspec)
+  push_git_tags
+
+  pod_push(
+    path: podspec_path,
+    allow_warnings:true,
+    sources: [
+      "https://github.com/CocoaPods/Specs"
+    ]
+  )
+end
